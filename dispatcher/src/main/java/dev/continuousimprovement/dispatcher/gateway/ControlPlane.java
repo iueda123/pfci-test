@@ -1,0 +1,3 @@
+package dev.continuousimprovement.dispatcher.gateway;
+import java.nio.file.Path;import java.util.*;
+public interface ControlPlane {default void recoverStale()throws Exception{} Optional<WorkItem> nextReady()throws Exception;Optional<RunClaim> claim(WorkItem item)throws Exception;Path fetchRedacted(RunClaim claim,Path target)throws Exception;void running(RunClaim claim)throws Exception;void failed(RunClaim claim,String code,String detail)throws Exception;void needsInfo(RunClaim claim,String detail)throws Exception;String openDraftPr(RunClaim claim,String branch,String body)throws Exception;void prOpened(RunClaim claim,String branch,String prUrl)throws Exception;}

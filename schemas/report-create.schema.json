@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object", "additionalProperties": false,
+  "required": ["idempotencyKey", "category", "comment", "consentedAt", "app", "environment", "artifacts"],
+  "properties": {
+    "idempotencyKey": {"type": "string", "format": "uuid"}, "reporterName": {"type": ["string", "null"], "maxLength": 80},
+    "category": {"enum": ["bug", "usability", "request", "other"]}, "comment": {"type": "string", "minLength": 1, "maxLength": 4000},
+    "expected": {"type": ["string", "null"], "maxLength": 4000}, "consentedAt": {"type": "string", "format": "date-time"},
+    "app": {"type": "object", "required": ["version"], "properties": {"version": {"type": "string", "maxLength": 80}, "buildSha": {"type": ["string", "null"], "maxLength": 64}}},
+    "environment": {"type": "object"},
+    "artifacts": {"type": "array", "minItems": 1, "maxItems": 5, "items": {"type": "object", "additionalProperties": false, "required": ["kind", "contentType", "bytes", "sha256"], "properties": {"kind": {"enum": ["rawScreenshot", "rawLog", "redactedScreenshot", "redactedLog", "manifest"]}, "contentType": {"enum": ["image/png", "application/x-ndjson", "application/json"]}, "bytes": {"type": "integer", "minimum": 1, "maximum": 10485760}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}}}
+  }
+}
