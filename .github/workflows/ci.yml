@@ -7,14 +7,24 @@ on:
     branches: [main]
 permissions:
   contents: read
-  packages: read
 jobs:
   verify:
     runs-on: ubuntu-latest
+    # The reporting SDK lives in a private repository's Apache Maven registry. Repository-scoped
+    # Maven packages inherit that repository's permissions, and this workflow's GITHUB_TOKEN is
+    # scoped to this repository only, so it resolves the artifact as 404. The registry also rejects
+    # fine-grained tokens. GPR_READ_TOKEN must be a classic PAT with read:packages.
     env:
       GPR_USER: ${{ github.actor }}
-      GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GPR_TOKEN: ${{ secrets.GPR_READ_TOKEN }}
     steps:
+      - name: Require the package registry token
+        run: |
+          if [ -z "$GPR_TOKEN" ]; then
+            echo 'GPR_READ_TOKEN is not set. Create a classic PAT with read:packages and add it' >&2
+            echo 'as a repository secret, otherwise the reporting SDK resolves as "Could not find".' >&2
+            exit 1
+          fi
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with: {distribution: corretto, java-version: "25"}
