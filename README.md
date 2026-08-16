@@ -36,6 +36,11 @@ Supabase Edge Functions へ送信されます。未設定なら `local-reports/<
 ローカル保存だけを行います。このディレクトリには raw データが含まれる可能性があるため、
 ディレクトリ全体を共有しないでください。
 
+どちらの動作になるかは、報告 dialog の「アプリの送信設定」（SDK の `SettingsStatusPane`）が
+**値を表示せずに**示します。送信できる設定ならボタンは `送信する`、できなければ
+`ローカルbundleを作成` になります。`SUPABASE_PUBLISHABLE_KEY` に secret / service-role 相当の
+鍵が設定されている場合は警告し、ローカル保存だけを行って送信しません。
+
 ```bash
 export REPORT_API_URL='https://<project-ref>.supabase.co'
 export SUPABASE_PUBLISHABLE_KEY='<publishable-key>'

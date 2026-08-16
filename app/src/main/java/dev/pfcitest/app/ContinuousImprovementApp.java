@@ -4,8 +4,9 @@ import dev.continuousimprovement.reporting.capture.ScreenshotService;
 import dev.continuousimprovement.reporting.capture.ScreenMaskPolicy;
 import dev.continuousimprovement.reporting.report.LocalReportBundleWriter;
 import dev.continuousimprovement.reporting.report.ReportBundleRequest;
-import dev.continuousimprovement.reporting.report.RemoteReportClient;
+import dev.continuousimprovement.reporting.report.RemoteSubmissionSettings;
 import dev.continuousimprovement.reporting.ui.MaskPreviewPane;
+import dev.continuousimprovement.reporting.ui.SettingsStatusPane;
 import dev.continuousimprovement.core.log.RingBufferLogCollector;
 import dev.continuousimprovement.core.model.EnvironmentInfo;
 import dev.continuousimprovement.core.model.LogEvent;
@@ -24,8 +25,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -98,9 +97,14 @@ public final class ContinuousImprovementApp extends Application {
         var consent = new CheckBox("previewを確認し、送信に同意する");
         var clearMasks = new Button("追加の黒塗りを消す");
         clearMasks.setOnAction(event -> preview.clearManualMasks());
-        var send = new Button("ローカルbundleを作成");
+        var settings = RemoteSubmissionSettings.fromEnvironment();
+        var settingsPane = new SettingsStatusPane(settings.report());
+        var send = new Button(settings.remoteEnabled() ? "送信する" : "ローカルbundleを作成");
         var cancel = new Button("キャンセル");
-        var status = new Label("画像上をドラッグすると追加の黒塗りができます。");
+        var status = new Label(settings.blocked()
+                ? "送信は行いません（ローカル保存だけを行います）: " + settings.unavailableReason()
+                : "画像上をドラッグすると追加の黒塗りができます。");
+        status.setWrapText(true);
 
         var content = new VBox(8,
                 new Label("ユーザー名"), reporter,
@@ -109,7 +113,7 @@ public final class ContinuousImprovementApp extends Application {
                 new Label("期待結果"), expected,
                 includeScreenshot, includeLogs,
                 new Label("マスク済みpreview"), preview, clearMasks,
-                consent, new ToolBar(send, cancel), status
+                settingsPane, consent, new ToolBar(send, cancel), status
         );
         content.setPadding(new Insets(16));
         var scroll = new ScrollPane(content);
@@ -142,12 +146,12 @@ public final class ContinuousImprovementApp extends Application {
             );
             background.submit(() -> {
                 try {
-                    var rootPath = Path.of(System.getenv().getOrDefault("REPORT_OUTPUT_DIR", "local-reports"));
-                    var written = new LocalReportBundleWriter().write(rootPath, request);
+                    var written = new LocalReportBundleWriter().write(settings.outputDirectory(), request);
                     String completed = "作成しました: " + written.toAbsolutePath();
-                    String remoteUrl=System.getenv("REPORT_API_URL"),publishable=System.getenv("SUPABASE_PUBLISHABLE_KEY");
-                    if(remoteUrl!=null&&!remoteUrl.isBlank()&&publishable!=null&&!publishable.isBlank()){
-                        try(var remote=new RemoteReportClient(URI.create(remoteUrl),publishable)){var submitted=remote.submit(written);completed="送信しました: "+submitted.issueUrl();}
+                    if (settings.remoteEnabled()) {
+                        try (var remote = settings.newClient()) {
+                            completed = "送信しました: " + remote.submit(written).issueUrl();
+                        }
                     }
                     String message=completed;
                     Platform.runLater(() -> {
