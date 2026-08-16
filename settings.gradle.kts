@@ -1,3 +1,3 @@
-rootProject.name = "platform-for-continuous-improvement"
+rootProject.name = "pfci-test"
 
-include("core", "app", "dispatcher")
+include("app")

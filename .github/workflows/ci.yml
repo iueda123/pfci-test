@@ -1,3 +1,5 @@
+# Distributed from templates/github/workflows/ci.yml in platform-for-continuous-improvement.
+# Do not edit here; edit the template.
 name: CI
 on:
   pull_request:
@@ -5,17 +7,16 @@ on:
     branches: [main]
 permissions:
   contents: read
+  packages: read
 jobs:
   verify:
     runs-on: ubuntu-latest
+    env:
+      GPR_USER: ${{ github.actor }}
+      GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with: {distribution: corretto, java-version: "25"}
       - uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew test build
-      - uses: actions/setup-node@v4
-        with: {node-version: "22"}
-      - run: node --test supabase/tests/security-contract.mjs
-      - run: scripts/lint.sh
-      - run: scripts/security-gate.sh

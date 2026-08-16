@@ -1,11 +1,11 @@
-package dev.continuousimprovement.app;
+package dev.pfcitest.app;
 
-import dev.continuousimprovement.app.capture.ScreenshotService;
-import dev.continuousimprovement.app.capture.ScreenMaskPolicy;
-import dev.continuousimprovement.app.report.LocalReportBundleWriter;
-import dev.continuousimprovement.app.report.ReportBundleRequest;
-import dev.continuousimprovement.app.report.RemoteReportClient;
-import dev.continuousimprovement.app.ui.MaskPreviewPane;
+import dev.continuousimprovement.reporting.capture.ScreenshotService;
+import dev.continuousimprovement.reporting.capture.ScreenMaskPolicy;
+import dev.continuousimprovement.reporting.report.LocalReportBundleWriter;
+import dev.continuousimprovement.reporting.report.ReportBundleRequest;
+import dev.continuousimprovement.reporting.report.RemoteReportClient;
+import dev.continuousimprovement.reporting.ui.MaskPreviewPane;
 import dev.continuousimprovement.core.log.RingBufferLogCollector;
 import dev.continuousimprovement.core.model.EnvironmentInfo;
 import dev.continuousimprovement.core.model.LogEvent;
@@ -69,7 +69,7 @@ public final class ContinuousImprovementApp extends Application {
         appendLog("INFO", "Application started");
         if ("true".equalsIgnoreCase(System.getenv("APP_SMOKE_TEST"))) {
             Platform.runLater(() -> {
-                var capture = screenshotService.capture(root, new ScreenMaskPolicy("demo-main", List.of(customerName, customerEmail)));
+                var capture = screenshotService.capture(root, new ScreenMaskPolicy("pfci-test/main", List.of(customerName, customerEmail)));
                 if (capture.rawPng().length == 0 || capture.redactedPng().length == 0) throw new IllegalStateException("empty capture");
                 System.out.println("SMOKE_CAPTURE_OK raw=" + capture.rawPng().length + " redacted=" + capture.redactedPng().length);
                 Platform.exit();
@@ -79,7 +79,7 @@ public final class ContinuousImprovementApp extends Application {
 
     private void openReportDialog(Stage owner) {
         appendLog("INFO", "Report dialog requested");
-        var screenshot = screenshotService.capture(root, new ScreenMaskPolicy("demo-main", List.of(customerName, customerEmail)));
+        var screenshot = screenshotService.capture(root, new ScreenMaskPolicy("pfci-test/main", List.of(customerName, customerEmail)));
         var preview = new MaskPreviewPane(screenshot.redactedPng());
 
         var reporter = new TextField();
@@ -133,7 +133,7 @@ public final class ContinuousImprovementApp extends Application {
             String redactedLogs = logs.toRedactedJsonLines(Duration.ofMinutes(5), Instant.now(), logRedactor);
             var request = new ReportBundleRequest(
                     UUID.randomUUID(), reporter.getText(), category.getValue(), comment.getText(), expected.getText(),
-                    Instant.now(), "0.1.0-SNAPSHOT", "local-dev", EnvironmentInfo.current("demo-main"),
+                    Instant.now(), "0.1.0-SNAPSHOT", "local-dev", EnvironmentInfo.current("pfci-test/main"),
                     includeScreenshot.isSelected() ? screenshot.rawPng() : null,
                     includeScreenshot.isSelected() ? redactedScreenshot : null,
                     includeLogs.isSelected() ? rawLogs.getBytes(StandardCharsets.UTF_8) : null,
