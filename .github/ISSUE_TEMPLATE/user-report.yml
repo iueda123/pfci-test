@@ -1,0 +1,18 @@
+# Distributed from templates/github/ISSUE_TEMPLATE/user-report.yml in platform-for-continuous-improvement.
+# Do not edit here; edit the template.
+name: User report triage
+description: Human triage view for reports created by the Edge Function
+title: "[User report] "
+labels: ["user-report", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "Never paste raw artifacts, signed URLs, or credentials. Apply `agent-ready` and exactly one `agent:*` label only after reviewing redacted evidence."
+  - type: input
+    id: report-id
+    attributes: {label: Report ID}
+    validations: {required: true}
+  - type: textarea
+    id: problem
+    attributes: {label: Sanitized problem statement}
+    validations: {required: true}
